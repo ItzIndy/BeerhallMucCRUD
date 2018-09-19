@@ -18,7 +18,7 @@ namespace Beerhall.Controllers
             _locationRepository = locationRepository;
         }
 
-         public IActionResult Index()
+        public IActionResult Index()
         {
             IEnumerable<Brewer> brewers = _brewerRepository.GetAll().OrderBy(b => b.Name).ToList();
             ViewData["TotalTurnover"] = brewers.Sum(b => b.Turnover);
@@ -28,10 +28,8 @@ namespace Beerhall.Controllers
         public IActionResult Edit(int id)
         {
             Brewer brewer = _brewerRepository.GetBy(id);
-            ViewData["Locations"] = new SelectList(
-                _locationRepository.GetAll().OrderBy(l => l.Name),
-                nameof(Location.PostalCode),
-                nameof(Location.Name));
+            ViewData["IsEdit"] = true;
+            ViewData["Locations"] = GetLocationsAsSelectList();
             return View(new BrewerEditViewModel(brewer));
         }
 
@@ -39,12 +37,44 @@ namespace Beerhall.Controllers
         public IActionResult Edit(BrewerEditViewModel brewerEditViewModel, int id)
         {
             Brewer brewer = _brewerRepository.GetBy(id);
-            brewer.Name = brewerEditViewModel.Name;
-            brewer.Street = brewerEditViewModel.Street;
-            brewer.Location = brewerEditViewModel.PostalCode == null ? null : _locationRepository.GetBy(brewerEditViewModel.PostalCode);
-            brewer.Turnover = brewerEditViewModel.Turnover;
+            MapBrewerEditViewModelToBrewer(brewerEditViewModel, brewer);
             _brewerRepository.SaveChanges();
             return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult Create()
+        {
+            ViewData["IsEdit"] = false;
+            ViewData["Locations"] = GetLocationsAsSelectList();
+            return View(nameof(Edit), new BrewerEditViewModel());
+        }
+
+        [HttpPost]
+        public IActionResult Create(BrewerEditViewModel brewerEditViewModel)
+        {
+            Brewer brewer = new Brewer(brewerEditViewModel.Name);
+            MapBrewerEditViewModelToBrewer(brewerEditViewModel, brewer);
+            _brewerRepository.Add(brewer);
+            _brewerRepository.SaveChanges();
+            return RedirectToAction(nameof(Index));
+        }
+
+        private SelectList GetLocationsAsSelectList()
+        {
+            return new SelectList(
+                            _locationRepository.GetAll().OrderBy(l => l.Name),
+                            nameof(Location.PostalCode),
+                            nameof(Location.Name));
+        }
+
+        private void MapBrewerEditViewModelToBrewer(BrewerEditViewModel brewerEditViewModel, Brewer brewer)
+        {
+            brewer.Name = brewerEditViewModel.Name;
+            brewer.Street = brewerEditViewModel.Street;
+            brewer.Location = brewerEditViewModel.PostalCode == null
+                ? null
+                : _locationRepository.GetBy(brewerEditViewModel.PostalCode);
+            brewer.Turnover = brewerEditViewModel.Turnover;
         }
     }
 }
