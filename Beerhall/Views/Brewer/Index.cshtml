@@ -1,0 +1,60 @@
+﻿@model IEnumerable<Beerhall.Models.Domain.Brewer>
+
+@{
+    ViewData["Title"] = "View";
+}
+
+<h2>View</h2>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Name
+            </th>
+            <th>
+                Street
+            </th>
+            <th>
+                Location
+            </th>
+            <th>
+                Turnover
+            </th>
+            <th>
+                Date established
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var brewer in Model) {
+        <tr>
+            <td>
+                @brewer.Name
+            </td>
+            <td>
+                @brewer.Street
+            </td>
+            <td>
+                @brewer.Location?.PostalCode @brewer.Location?.Name
+            </td>
+            <td>
+                @brewer.Turnover @(brewer.Turnover.HasValue?"$":"--")
+            </td>
+            <td>
+                @brewer.DateEstablished?.Date.ToString("d")
+            </td>
+            
+            <td>
+                <a asp-controller="Brewer" asp-action="Edit" asp-route-id="@brewer.BrewerId">Edit</a>
+                <a asp-controller="Brewer" asp-action="Delete" asp-route-id="@brewer.BrewerId">Delete</a>
+                <a asp-controller="Brewer" asp-action="Detail" asp-route-id="@brewer.BrewerId">Detail</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
